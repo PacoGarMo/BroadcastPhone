@@ -5,49 +5,19 @@ package com.example.dam.broadcastphone;
  */
 
 public class CallRegister {
-    String date, hour, state, phone;
-    int id;
+    private int id;
+    private String type;//Entrante, Saliente y Perdida
+    private String number;
+    private String date;
 
     public CallRegister() {
     }
 
-    public CallRegister(String date, String hour, String state, String phone) {
-        this.date = date;
-        this.hour = hour;
-        this.state = state;
-        this.phone = phone;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
-
-    public String getHour() {
-        return hour;
-    }
-
-    public void setHour(String hour) {
-        this.hour = hour;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public CallRegister(int id, String type, String numero, String fechahora) {
+        this.id = id;
+        this.type = type;
+        this.number = numero;
+        this.date = fechahora;
     }
 
     public int getId() {
@@ -58,14 +28,23 @@ public class CallRegister {
         this.id = id;
     }
 
-    @Override
-    public String toString() {
-        return "CallRegister{" +
-                "date='" + date + '\'' +
-                ", hour='" + hour + '\'' +
-                ", state='" + state + '\'' +
-                ", phone=" + phone +
-                ", id=" + id +
-                '}';
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getNumber() {return number;}
+
+    public void setNumber(String number) {this.number = number;}
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 }

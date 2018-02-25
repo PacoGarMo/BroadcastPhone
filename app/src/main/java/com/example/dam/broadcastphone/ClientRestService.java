@@ -33,12 +33,13 @@ public class ClientRestService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String state = intent.getStringExtra("state");
-        String phoneNumber = intent.getStringExtra("phoneNumber");
+        String phone = intent.getStringExtra("phoneNumber");
+        String fecha = intent.getStringExtra("date");
 
         Log.v("xyzyx", "State: " + state);
 
         Log.v("xyzyx", "State: " + state);
-        Log.v("xyzyx", "Phone: " + phoneNumber);
+        Log.v("xyzyx", "Phone: " + phone);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://jsonserver-pacogarmo.c9users.io:3000/broadcast/")
@@ -47,8 +48,10 @@ public class ClientRestService extends Service {
 
         ApiServiceRest service = retrofit.create(ApiServiceRest.class);
 
+        CallRegister call = new CallRegister(0, state, phone, fecha);
+
 //        getMethod(service);
-//        postMethod(service, state, phoneNumber);
+        postMethod(service, call);
 
         return START_REDELIVER_INTENT;
     }
@@ -65,9 +68,8 @@ public class ClientRestService extends Service {
 
                 for (CallRegister regis : array) {
                     result += "- Id: " + regis.getId() +
-                              " - State: " + regis.getState() +
-                              " - Date: " + regis.getDate() +
-                              " - Hour: " + regis.getHour() + "\n";
+                              " - State: " + regis.getType() +
+                              " - Date: " + regis.getDate() + "\n";
                 }
                 Log.v("xyzyx", result);
             }
@@ -79,31 +81,19 @@ public class ClientRestService extends Service {
         });
     }
 
-    private void postMethod(ApiServiceRest service, String state, String phoneNumber) {
+    private void postMethod(ApiServiceRest service, CallRegister call) {
 
-        Calendar c = new GregorianCalendar();
-
-        int year = c.get(Calendar.YEAR);
-        int month = c.get(Calendar.MONTH + 1);
-        int day = c.get(Calendar.DAY_OF_MONTH);
-        int h = c.get(Calendar.HOUR_OF_DAY);
-        int m = c.get(Calendar.MINUTE);
-        int s = c.get(Calendar.SECOND);
-
-
-        CallRegister nuevo = new CallRegister( day + "/" + month + "/" + year, h + ":" + m + ":" + s, state, phoneNumber);
-
-        Call<CallRegister> registroCall = service.postCallRegister(nuevo);
+        Call<CallRegister> registroCall = service.postCallRegister(call);
 
         registroCall.enqueue(new Callback<CallRegister>() {
             @Override
             public void onResponse(Call<CallRegister> call, Response<CallRegister> response) {
-
+                Log.d("Prueba", "Exito");
             }
 
             @Override
             public void onFailure(Call<CallRegister> call, Throwable t) {
-
+                Log.d("Prueba", "Error: " + t.getMessage());
             }
         });
     }
