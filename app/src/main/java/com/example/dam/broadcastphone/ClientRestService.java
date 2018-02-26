@@ -35,10 +35,11 @@ public class ClientRestService extends Service {
 
         String state = intent.getStringExtra("state");
         String phone = intent.getStringExtra("phoneNumber");
-        String fecha = intent.getStringExtra("date");
+        String date = intent.getStringExtra("date");
 
         Log.v("xyzyx", "State: " + state);
         Log.v("xyzyx", "Phone: " + phone);
+        Log.v("xyzyx", "Date: " + date);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://jsonserver-pacogarmo.c9users.io:3000/broadcast/")
@@ -47,7 +48,7 @@ public class ClientRestService extends Service {
 
         ApiServiceRest service = retrofit.create(ApiServiceRest.class);
 
-        CallRegister call = new CallRegister(0, state, phone, fecha);
+        CallRegister call = new CallRegister(0, state, phone, date);
 
         getMethod(service);
         postMethod(service, call);
