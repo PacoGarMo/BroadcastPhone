@@ -3,12 +3,11 @@ package com.example.dam.broadcastphone;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by Francisco on 31/01/2018.
@@ -17,79 +16,73 @@ import java.util.Date;
 
 public class CallReceiver extends BroadcastReceiver {
 
-    private static Date callStartTime;
-    private static boolean isIncoming;
-    private static String savedNumber;
-    private static int lastState = TelephonyManager.CALL_STATE_IDLE;
+    private int lastState;
+    private Date startCall;
+    private boolean esEntrante;
+    private String savedNumber;
 
     @Override
-    public void onReceive(final Context context, final Intent intent) {
-
-        //We listen to two intents.  The new outgoing call only tells us of an outgoing call.  We use it to get the number.
+    public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
             savedNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
         }
         else{
             String stateStr = intent.getExtras().getString(TelephonyManager.EXTRA_STATE);
-            String number = intent.getExtras().getString(TelephonyManager.EXTRA_INCOMING_NUMBER);
-            int state = 0;
+            String numero = intent.getExtras().getString(TelephonyManager.EXTRA_INCOMING_NUMBER);
+            int tipoNumero = 0;
             if(stateStr.equals(TelephonyManager.EXTRA_STATE_IDLE)){
-                state = TelephonyManager.CALL_STATE_IDLE;
+                tipoNumero = TelephonyManager.CALL_STATE_IDLE;
             }
             else if(stateStr.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)){
-                state = TelephonyManager.CALL_STATE_OFFHOOK;
+                tipoNumero = TelephonyManager.CALL_STATE_OFFHOOK;
             }
             else if(stateStr.equals(TelephonyManager.EXTRA_STATE_RINGING)){
-                state = TelephonyManager.CALL_STATE_RINGING;
+                tipoNumero = TelephonyManager.CALL_STATE_RINGING;
             }
 
-
-            onCallStateChanged(context, state, number);
+            onCallStateChanged(context, tipoNumero, numero);
         }
-
-
     }
 
-    protected void onIncomingCallStarted(Context ctx, String number, Date start){}
-    protected void onOutgoingCallStarted(Context ctx, String number, Date start){}
-    protected void onIncomingCallEnded(Context ctx, String number, Date start, Date end){}
-    protected void onOutgoingCallEnded(Context ctx, String number, Date start, Date end){}
-    protected void onMissedCall(Context ctx, String number, Date start){}
+    private void logCall(Context context, String numberPhone, String state, String date){
+        Intent intent = new Intent(context, ClientRestService.class);
+        intent.putExtra("state", state);
+        intent.putExtra("phoneNumber", numberPhone);
+        intent.putExtra("date", date);
+        context.startService(intent);
+    }
 
-    public void onCallStateChanged(Context context, int state, String number) {
-        if(lastState == state){
-            //No change, debounce extras
-            return;
-        }
-        switch (state) {
+    public void onCallStateChanged(Context context, int estado, String numero) {
+        switch (estado) {
             case TelephonyManager.CALL_STATE_RINGING:
-                isIncoming = true;
-                callStartTime = new Date();
-                savedNumber = number;
-                onIncomingCallStarted(context, number, callStartTime);
+                esEntrante = true;
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd k:mm", Locale.getDefault());
+                startCall = new Date();
+                String fecha = dateFormat.format(startCall);
+                savedNumber = numero;
+                String tipo = "Sonando";
+                logCall(context, savedNumber, tipo, fecha);
                 break;
             case TelephonyManager.CALL_STATE_OFFHOOK:
-                //Transition of ringing->offhook are pickups of incoming calls.  Nothing done on them
                 if(lastState != TelephonyManager.CALL_STATE_RINGING){
-                    isIncoming = false;
-                    callStartTime = new Date();
-                    onOutgoingCallStarted(context, savedNumber, callStartTime);
+                    esEntrante = false;
+                    dateFormat = new SimpleDateFormat("yyyy/MM/dd k:mm", Locale.getDefault());
+                    startCall = new Date();
+                    fecha = dateFormat.format(startCall);
+                    savedNumber = numero;
+                    tipo = "Responder";
+                    logCall(context, savedNumber, tipo, fecha);
                 }
                 break;
             case TelephonyManager.CALL_STATE_IDLE:
-                //Went to idle-  this is the end of a call.  What type depends on previous state(s)
-                if(lastState == TelephonyManager.CALL_STATE_RINGING){
-                    //Ring but no pickup-  a miss
-                    onMissedCall(context, savedNumber, callStartTime);
-                }
-                else if(isIncoming){
-                    onIncomingCallEnded(context, savedNumber, callStartTime, new Date());
-                }
-                else{
-                    onOutgoingCallEnded(context, savedNumber, callStartTime, new Date());
-                }
+                dateFormat = new SimpleDateFormat("yyyy/MM/dd k:mm", Locale.getDefault());
+                startCall = new Date();
+                fecha = dateFormat.format(startCall);
+                savedNumber = numero;
+                tipo = "Colgar";
+                logCall(context, savedNumber, tipo, fecha);
                 break;
         }
-        lastState = state;
+        lastState = estado;
     }
 }

@@ -32,11 +32,10 @@ public class ClientRestService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         String state = intent.getStringExtra("state");
         String phone = intent.getStringExtra("phoneNumber");
         String fecha = intent.getStringExtra("date");
-
-        Log.v("xyzyx", "State: " + state);
 
         Log.v("xyzyx", "State: " + state);
         Log.v("xyzyx", "Phone: " + phone);
@@ -50,7 +49,7 @@ public class ClientRestService extends Service {
 
         CallRegister call = new CallRegister(0, state, phone, fecha);
 
-//        getMethod(service);
+        getMethod(service);
         postMethod(service, call);
 
         return START_REDELIVER_INTENT;
